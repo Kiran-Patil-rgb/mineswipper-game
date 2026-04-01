@@ -1,42 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Selects the game container and button//
-    const grid = document.querySelector(`.grid`);
+
+    const grid = document.querySelector('.grid');
     const restartButton = document.getElementById('restart-button');
-    const scoreboard = document.getElementById('score'); 
+    const scoreboard = document.getElementById('score');
+
     const columns = 10;
     const rows = 10;
     const totalCells = columns * rows;
     const totalBombs = 20;
+
     let isGameOver = false;
     let boxes = [];
-    let score = 0; 
+    let score = 0;
 
-     // A function to start and restart the game//
+    // START GAME
     function startGame() {
-         // Clears the grid//
         grid.innerHTML = '';
         boxes = [];
         isGameOver = false;
-        if (restartButton) {
-            restartButton.style.display = 'none';
-        }
-        score = 0; // Resets the score//
-        updateScore(); //Updates the scoreboard//
 
-         // Loop to create cells and add them to the grid//
+        if (restartButton) restartButton.style.display = 'none';
+
+        score = 0;
+        updateScore();
+
         for (let i = 0; i < totalCells; i++) {
-            const cell = document.createElement(`div`);
-            cell.classList.add(`box`);
+            const cell = document.createElement('div');
+            cell.classList.add('box');
             cell.setAttribute('data-id', i);
-            cell.addEventListener(`click`, checkCell);
+
+            cell.addEventListener('click', checkCell);
             cell.addEventListener('contextmenu', addFlag);
-            cell.addEventListener('mouseenter', handleHint);
-            cell.addEventListener('mouseleave', handleHintEnd);
+
             grid.appendChild(cell);
             boxes.push(cell);
         }
 
-         // Loop to place bombs//
+        // PLACE BOMBS
         let bombLocations = [];
         while (bombLocations.length < totalBombs) {
             let randomIndex = Math.floor(Math.random() * totalCells);
@@ -47,19 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // A function to update the score//
+    // UPDATE SCORE
     function updateScore() {
-        if (scoreboard) {
-            scoreboard.textContent = score;
-        }
+        if (scoreboard) scoreboard.textContent = score;
     }
 
-   // Adds a click listener to the restart button//
     if (restartButton) {
         restartButton.addEventListener('click', startGame);
     }
 
-    // This function runs when a box is clicked//
+    // CLICK CELL
     function checkCell(event) {
         const clickedCell = event.target;
         const cellIndex = parseInt(clickedCell.dataset.id);
@@ -67,36 +64,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isGameOver || clickedCell.classList.contains('clicked') || clickedCell.classList.contains('flag')) {
             return;
         }
-        /* mobile hint fix */
-        if (clickedCell.classList.contains('mine')){
-            clickedCell.classList.add('hint');
-
-            setTimeout(()=>{
-                clickedCell.classList.remove('hint');
-            }, 500); 
-        }
 
         if (clickedCell.classList.contains('mine')) {
             gameOver();
-        } else {
-            const adjacentMines = countAdjacentMines(cellIndex);
-            clickedCell.classList.add('clicked');
-            clickedCell.style.backgroundColor = `rgb(214,214,214)`;
-            score++; 
-            updateScore(); 
-
-            if (adjacentMines > 0) {
-                clickedCell.innerHTML = `<span>${adjacentMines}</span>`;
-            } else {
-                clearAdjacentBlanks(cellIndex);
-            }
+            return;
         }
+
+        const adjacentMines = countAdjacentMines(cellIndex);
+
+        clickedCell.classList.add('clicked');
+        clickedCell.style.backgroundColor = 'rgb(214,214,214)';
+
+        score++;
+        updateScore();
+
+        if (adjacentMines > 0) {
+            clickedCell.innerHTML = `<span>${adjacentMines}</span>`;
+
+            // ✅ MOBILE HINT
+            highlightNearbyCells(cellIndex);
+
+        } else {
+            clearAdjacentBlanks(cellIndex);
+        }
+
         checkWinCondition();
     }
-    
-   // This function counts adjacent mines.//
+
+    // COUNT MINES
     function countAdjacentMines(cellIndex) {
         let count = 0;
+
         const isLeftEdge = (cellIndex % columns === 0);
         const isRightEdge = (cellIndex % columns === columns - 1);
 
@@ -107,88 +105,88 @@ document.addEventListener('DOMContentLoaded', () => {
             !isLeftEdge && cellIndex + columns - 1, !isRightEdge && cellIndex + columns + 1
         ].filter(index => index !== false);
 
-        for (const index of adjacentIndices) {
-            if (index >= 0 && index < totalCells && boxes[index] && boxes[index].classList.contains('mine')) {
+        adjacentIndices.forEach(index => {
+            if (index >= 0 && index < totalCells && boxes[index].classList.contains('mine')) {
                 count++;
             }
-        }
+        });
+
         return count;
     }
 
-    // This function automatically clears empty cells.//
+    // CLEAR EMPTY CELLS
     function clearAdjacentBlanks(cellIndex) {
         const cell = boxes[cellIndex];
         if (!cell || cell.classList.contains('clicked')) return;
-        
-        
+
         score++;
         updateScore();
 
         cell.classList.add('clicked');
-        cell.style.backgroundColor = `rgb(214,214,214)`;
+        cell.style.backgroundColor = 'rgb(214,214,214)';
 
         const adjacentMines = countAdjacentMines(cellIndex);
+
         if (adjacentMines > 0) {
             cell.innerHTML = `<span>${adjacentMines}</span>`;
             return;
         }
+
         const isLeftEdge = (cellIndex % columns === 0);
         const isRightEdge = (cellIndex % columns === columns - 1);
+
         const adjacentIndices = [
             cellIndex - columns, cellIndex + columns,
             !isLeftEdge && cellIndex - 1, !isRightEdge && cellIndex + 1,
             !isLeftEdge && cellIndex - columns - 1, !isRightEdge && cellIndex - columns + 1,
             !isLeftEdge && cellIndex + columns - 1, !isRightEdge && cellIndex + columns + 1
         ].filter(index => index !== false);
-        for (const index of adjacentIndices) {
-            if (index >= 0 && index < totalCells && boxes[index]) {
+
+        adjacentIndices.forEach(index => {
+            if (index >= 0 && index < totalCells) {
                 clearAdjacentBlanks(index);
             }
-        }
+        });
     }
 
-    // This function ends the game.//
+    // GAME OVER
     function gameOver() {
         isGameOver = true;
         alert('Game over! You stepped on a bomb.');
+
         boxes.forEach(cell => {
             if (cell.classList.contains('mine')) {
                 cell.style.backgroundColor = 'red';
                 cell.innerHTML = `<span>💣</span>`;
-                cell.classList.add('bomb-revealed');
             }
-            cell.removeEventListener(`click`, checkCell);
-            cell.removeEventListener('contextmenu', addFlag);
         });
-        if (restartButton) {
-            restartButton.style.display = 'block';
-        }
+
+        if (restartButton) restartButton.style.display = 'block';
     }
 
-     // Checks the win condition.//
+    // WIN CHECK
     function checkWinCondition() {
         const clickedCells = boxes.filter(cell => cell.classList.contains('clicked')).length;
         const nonMineCells = totalCells - totalBombs;
+
         if (clickedCells === nonMineCells) {
             isGameOver = true;
-            alert('Congratulations, you have won!');
-             document.body.classList.add('win-background');
-              party.confetti(document.body, {
-            count: party.variation.range(100, 200) 
-        });
+            alert('Congratulations! You won 🎉');
 
+            document.body.classList.add('win-background');
 
-            if (restartButton) {
-                restartButton.style.display = 'block';
-            }
+            if (restartButton) restartButton.style.display = 'block';
         }
     }
 
-    // For adding/removing flags//
+    // FLAG
     function addFlag(event) {
         event.preventDefault();
+
         const cell = event.target;
+
         if (isGameOver || cell.classList.contains('clicked')) return;
+
         if (cell.classList.contains('flag')) {
             cell.classList.remove('flag');
             cell.innerHTML = '';
@@ -198,21 +196,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleHint(event) {
-        if (isGameOver) return;
-        const hoveredCell = event.target;
-        if (hoveredCell.classList.contains('mine')) {
-            hoveredCell.classList.add('hint');
-        }
+    // ✅ NEW FUNCTION (IMPORTANT)
+    function highlightNearbyCells(cellIndex) {
+        const isLeftEdge = (cellIndex % columns === 0);
+        const isRightEdge = (cellIndex % columns === columns - 1);
+
+        const adjacentIndices = [
+            cellIndex - columns, cellIndex + columns,
+            !isLeftEdge && cellIndex - 1, !isRightEdge && cellIndex + 1,
+            !isLeftEdge && cellIndex - columns - 1, !isRightEdge && cellIndex - columns + 1,
+            !isLeftEdge && cellIndex + columns - 1, !isRightEdge && cellIndex + columns + 1
+        ].filter(index => index !== false);
+
+        adjacentIndices.forEach(index => {
+            if (index >= 0 && index < totalCells) {
+                boxes[index].classList.add('hint');
+
+                setTimeout(() => {
+                    boxes[index].classList.remove('hint');
+                }, 600);
+            }
+        });
     }
 
-    function handleHintEnd(event) {
-        if (isGameOver) return;
-        const hoveredCell = event.target;
-        hoveredCell.classList.remove('hint');
-    }
-
-   // Starts the game for the first time//
+    // START
     startGame();
     document.body.classList.remove('win-background');
 });
