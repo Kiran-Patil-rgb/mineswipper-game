@@ -67,6 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isGameOver || clickedCell.classList.contains('clicked') || clickedCell.classList.contains('flag')) {
             return;
         }
+        /* mobile hint fix */
+        if (clickedCell.classList.contains('mine')){
+            clickedCell.classList.add('hint');
+
+            setTimeout(()=>{
+                clickedCell.classList.remove('hint');
+            }, 500); 
+        }
 
         if (clickedCell.classList.contains('mine')) {
             gameOver();
