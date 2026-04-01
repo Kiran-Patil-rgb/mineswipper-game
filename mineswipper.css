@@ -1,60 +1,73 @@
+
 body {
-   /* Other body styles */
+    margin: 0;
+    padding: 0;
     transition: background-color 1s ease-in-out;
 }
 
 body.win-background {
-    background-color: #a3d900; /* Green color on winning */
+    background-color: #a3d900;
 }
+
+/*  GRID FIX (IMPORTANT) */
 .grid {
     display: grid;
-    grid-template-columns: repeat(10, 40px);
-    padding: 60px 40px;
+    grid-template-columns: repeat(10, 1fr); 
+    gap: 5px;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;   
     margin: 0 auto;
 }
-/* Styling for each box */
+
+/* BOX FIX */
 .box {
-    width: 40px;
-    height: 40px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
     background-color: gray;
     border: 2px solid black;
     border-radius: 5px;
-    font-size: 1.5rem;
+    font-size: 1rem;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-/* Styling for the #game ID */
+
+/* GAME CONTAINER */
 #game {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    position: relative;
 }
-/* Hint for hovering over a mine */
+
+/* HINT */
 .box.hint {
     border: 3px solid #ff0000;
     box-shadow: 0 0 5px #ff0000;
 }
-/* Pop animation on clicking a bomb */
+
+/* ANIMATION */
 @keyframes bomb-pop {
     0% { transform: scale(0); opacity: 0; }
     50% { transform: scale(1.5); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1); }
 }
+
 .box.bomb-revealed span {
-    animation: bomb-pop 0.3s ease-out forwards;
+    animation: bomb-pop 0.3s ease-out;
 }
-/* Animation when a bomb explodes */
+
 @keyframes explode {
     0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(10); opacity: 0; }
+    100% { transform: scale(8); opacity: 0; }
 }
+
 .box.bomb-explodes span {
     animation: explode 0.8s linear forwards;
 }
-/* Styling for the restart button */
+
+/* RESTART BUTTON */
 #restart-button {
     position: absolute;
     top: 50%;
@@ -70,17 +83,20 @@ body.win-background {
     display: none;
     z-index: 10;
 }
+
 #restart-button:hover {
     background-color: #0056b3;
 }
-/* Styling for the scoreboard */
+
+/* SCOREBOARD */
 #scoreboard {
     font-size: 1.5rem;
     font-weight: bold;
     margin-bottom: 10px;
     color: #333;
 }
-/* Styling for flags and other spans */
+
+/* TEXT CENTER */
 .box span {
     display: flex;
     justify-content: center;
@@ -88,4 +104,25 @@ body.win-background {
     height: 100%;
     width: 100%;
 }
-    
+
+/*  MOBILE FIX (PERFECT BALANCE) */
+@media (max-width: 600px) {
+    .grid {
+        max-width: 320px;   
+        gap: 4px;
+        padding: 10px;
+    }
+
+    .box {
+        font-size: 0.8rem;
+    }
+
+    #scoreboard {
+        font-size: 1.2rem;
+    }
+
+    #restart-button {
+        font-size: 1rem;
+        padding: 8px 15px;
+    }
+}
